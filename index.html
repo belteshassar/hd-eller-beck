@@ -1,30 +1,29 @@
 <div id="rules">
-    Sedan några år tillbaka namnger Högsta domstolen de flesta av de mål som den avgör.
+    <h1>Beck-film eller rättsfall från Högsta domstolen</h1>
+    <p>Sedan några år tillbaka namnger Högsta domstolen de flesta av de mål som den avgör.
     Namnen för ibland tankarna till kriminalromaner eller -filmer. Klarar du att skilja på de två?
     Du kommer att få se tio titlar och din uppgift är att avgöra om titeln tillhör en Beck-film eller
-    ett rättsfall från Högsta domstolen. <!--eller kanske båda, men det finns inget sådant exempel när detta skrivs-->
-    <button id="start">Starta</button>
+    ett rättsfall från Högsta domstolen. <!--eller kanske båda, men det finns inget sådant exempel när detta skrivs--></p>
 </div>
-<button id="replay">Försök igen</button>
 <div id="quiz"></div>
-<button id="hd">Rättsfall</button>
-<button id="beck">Beck-film</button>
-<div id="results"></div>
+<div id="results">
+  <div id="message"></div>
+  <div id="info"></div>
+  <div id="link"></div>
+</div>
+<div id="cRetry"></div>
 
 <script>
 
 const quizContainer = document.getElementById('quiz');
 const resultsContainer = document.getElementById('results');
 const rulesContainer = document.getElementById('rules');
-const startButton = document.getElementById('start');
-const hdButton = document.getElementById('hd');
-const beckButton = document.getElementById('beck');
-const replayButton = document.getElementById('replay');
+const messageContainer = document.getElementById('message');
+const infoContainer = document.getElementById('info');
+const linkContainer = document.getElementById('link');
+const retryContainer = document.getElementById('cRetry');
 
 // hide elements for later use
-hdButton.style.display = "none";
-beckButton.style.display = "none";
-replayButton.style.display = "none";
 
 const myQuestions = [
   {
@@ -53,66 +52,50 @@ const myQuestions = [
   }
 ];
 
-var score = 0;
-
-async function runQuiz(){
-    // for each question...
-    myQuestions.forEach(
-    (currentQuestion, questionNumber) => {
-        //displayQuestion(currentQuestion);
-        //display alternatives
-        //await answer
-        //display results
-        //await next
-    }
-    )
+function showQuestion(){
+  quizContainer.innerHTML = `<div id="title">Kartellen</div>
+  <button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?`;
+  const hdButton = document.getElementById('hd');
+  const beckButton = document.getElementById('beck');
+  hdButton.addEventListener('click', displayWrongMessage);
+  beckButton.addEventListener('click', displayCorrectMessage);
 }
 
-function showResults(){
-    replayButton.style.display = "block";
+function hideQuestion(){
+  quizContainer.innerHTML = '';
+}
+
+function displayCorrectMessage(){
+  messageContainer.innerHTML = 'Grattis, du svarade rätt.';
+  displayTitleInfo();
+  retryContainer.innerHTML = '<button id="retry">Försök igen</button>';
+  document.getElementById('retry').addEventListener('click', hideResults);
+}
+
+function displayWrongMessage(){
+  messageContainer.innerHTML = 'Tyvärr, du svarade fel.';
+  displayTitleInfo();
+  retryContainer.innerHTML = '<button id="retry">Försök igen</button>';
+  document.getElementById('retry').addEventListener('click', hideResults);
+}
+
+function displayTitleInfo(){
+  infoContainer.innerHTML = '<p><b><i>Kartellen</i></b> är en film från 2001 av Kjell Sundvall med Peter Haber i rollen som Martin Beck.</p>';
+  linkContainer.innerHTML = '<a href="https://sv.wikipedia.org/wiki/Beck_%E2%80%93_Kartellen">Läs mer på Wikipedia.</a>';
 }
 
 function hideResults(){
-    replayButton.style.display = "none";
+  messageContainer.innerHTML = '';
+  infoContainer.innerHTML = '';
+  linkContainer.innerHTML = '';
+  retryContainer.innerHTML = '';
 }
 
-let waitForPressResolve;
-
-function waitForPress() {
-    return new Promise(resolve => waitForPressResolve = resolve);
-}
-
-function btnResolver() {
-  if (waitForPressResolve) waitForPressResolve();
-}
-
-async function mainLoop(){
-    while (true){
-        startButton.addEventListener('click', btnResolver);
-        // await start button press
-        await waitForPress();
-        //disable and remove start button
-        startButton.removeEventListener('click', btnResolver);
-        // hide rules
-        rulesContainer.style.display = "none";
-        runQuiz();
-        showResults();
-        replayButton.addEventListener('click', btnResolver);
-        await waitForPress();
-        replayButton.removeEventListener('click', btnResolver);
-        hideResults();
-        // show rules
-        rulesContainer.style.display = "block";
-    }
-}
+showQuestion();
 
 // Fetch and process data from Wikidata.
 // To be created, for now use the const above.
-
-// Run main loop of the game
-mainLoop();
-
-// on submit, show results
-submitButton.addEventListener('click', showResults);
+// Build question and add answer buttons
+// on submit, compare to answer key and display message
 
 </script>
