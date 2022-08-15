@@ -28,6 +28,8 @@ class SPARQLQueryDispatcher {
   }
 }
 
+let beckData, hdData;
+
 const endpointUrl = 'https://query.wikidata.org/sparql';
 const beckQuery = `SELECT ?title (YEAR(?date) AS ?year) ?regiLabel ?beckLabel ?article WHERE {
   ?item wdt:P179 wd:Q16939437;
@@ -47,11 +49,6 @@ const hdQuery = `SELECT ?title ?nja (YEAR(?date) AS ?year) ?url WHERE {
   OPTIONAL {?item wdt:P953 ?url.}
 }`;
 
-const queryDispatcher = new SPARQLQueryDispatcher( endpointUrl );
-queryDispatcher.query( beckQuery ).then( console.log );
-queryDispatcher.query( hdQuery ).then( console.log );
-
-
 const correctMessage = 'Grattis, du svarade rätt.';
 const wrongMessage = 'Tyvärr, du svarade fel.';
 
@@ -63,65 +60,56 @@ const infoContainer = document.getElementById('info');
 const linkContainer = document.getElementById('link');
 const retryContainer = document.getElementById('cRetry');
 
-// hide elements for later use
-
-const myQuestions = [
-  {
-    question: "Kartellen",
-    answers: {
-      a: "Rättsfall",
-      b: "Beck-film"
-    },
-    correctAnswer: "b"
-  },
-  {
-    question: "Ishavet",
-    answers: {
-        a: "Rättsfall",
-        b: "Beck-film"
-    },
-    correctAnswer: "a"
-  },
-  {
-    question: "Royal",
-    answers: {
-        a: "Rättsfall",
-        b: "Beck-film"
-    },
-    correctAnswer: "a"
-  }
-];
+function buildQuestion(value){
+  return `<div id="title">${value['title']['value']}</div>
+  <button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?`;
+}
 
 function showQuestion(){
-  quizContainer.innerHTML = `<div id="title">Kartellen</div>
-  <button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?`;
+  let selected;
+  let hdEvent, beckEvent;
+  // beck or hd?
+  if (Math.random() < 0.0) {
+    // select from Beck films
+    hdEvent = displayWrongMessage;
+    beckEvent = displayCorrectMessage;
+  }
+  else {
+    // select from HD cases
+    selected = hdData[Math.floor(Math.random()*hdData.length)];
+    const titleInfo = `<p><b><i>${selected['title']['value']}</i></b> (${selected['nja']['value']}) är ett avgörande från ${selected['year']['value']}.`;
+    const titleLink = `<a href="${selected['url']['value']}">Läs avgörandet</a> på Högsta domstolens hemsida.`;
+    hdEvent = () => displayCorrectMessage(titleInfo, titleLink);
+    beckEvent = displayWrongMessage(titleInfo, titleLink);
+  }
+  quizContainer.innerHTML = buildQuestion(selected);
   const hdButton = document.getElementById('hd');
   const beckButton = document.getElementById('beck');
-  hdButton.addEventListener('click', displayWrongMessage);
-  beckButton.addEventListener('click', displayCorrectMessage);
+  hdButton.addEventListener('click', hdEvent);
+  beckButton.addEventListener('click', beckEvent);
 }
 
 function hideQuestion(){
   quizContainer.innerHTML = '';
 }
 
-function displayCorrectMessage(){
+function displayCorrectMessage(titleInfo, titleLink){
   messageContainer.innerHTML = correctMessage;
-  displayTitleInfo();
+  displayTitleInfo(titleInfo, titleLink);
   retryContainer.innerHTML = '<button id="retry">Försök igen</button>';
   document.getElementById('retry').addEventListener('click', hideResults);
 }
 
-function displayWrongMessage(){
+function displayWrongMessage(titleInfo, titleLink){
   messageContainer.innerHTML = wrongMessage;
-  displayTitleInfo();
+  displayTitleInfo(titleInfo, titleLink);
   retryContainer.innerHTML = '<button id="retry">Försök igen</button>';
   document.getElementById('retry').addEventListener('click', hideResults);
 }
 
-function displayTitleInfo(){
-  infoContainer.innerHTML = '<p><b><i>Kartellen</i></b> är en film från 2001 av Kjell Sundvall med Peter Haber i rollen som Martin Beck.</p>';
-  linkContainer.innerHTML = '<a href="https://sv.wikipedia.org/wiki/Beck_%E2%80%93_Kartellen">Läs mer på Wikipedia.</a>';
+function displayTitleInfo(titleInfo, titleLink){
+  infoContainer.innerHTML = titleInfo;
+  linkContainer.innerHTML = titleLink;
 }
 
 function hideResults(){
@@ -131,7 +119,10 @@ function hideResults(){
   retryContainer.innerHTML = '';
 }
 
-showQuestion();
+const queryDispatcher = new SPARQLQueryDispatcher( endpointUrl );
+beckPromise = queryDispatcher.query( beckQuery ).then( (value) => {beckData = value['results']['bindings'];} );
+hdPromise = queryDispatcher.query( hdQuery ).then( (value) => {hdData = value['results']['bindings'];} );
+Promise.all([beckPromise, hdPromise]).then( showQuestion );
 
 // Fetch and process data from Wikidata.
 // To be created, for now use the const above.
