@@ -63,7 +63,7 @@ const retryContainer = document.getElementById('cRetry');
 const alternativesContainer = document.getElementById('alternatives');
 
 function buildQuestion(value){
-  return `<div id="title">${value['title']['value']}</div>`;
+  return `<div id="title">${value}</div>`;
 }
 
 function showQuestion(){
@@ -72,7 +72,7 @@ function showQuestion(){
   const hdButton = document.getElementById('hd');
   const beckButton = document.getElementById('beck');
   // beck or hd?
-  if (Math.random() < 0.5) {
+  if (Math.random() < 0.0) {
     // select from Beck films
     selected = beckData[Math.floor(Math.random()*beckData.length)];
     const titleInfo = `<p><b><i>${selected['title']['value']}</i></b> är
@@ -82,16 +82,22 @@ function showQuestion(){
     const titleLink = `<a href="${selected['article']['value']}">Läs mer</a> på Wikipedia.`;
     hdEvent = () => displayWrongMessage(titleInfo, titleLink);
     beckEvent = () => displayCorrectMessage(titleInfo, titleLink);
+    quizContainer.innerHTML = buildQuestion(selected['title']['value']);
   }
   else {
     // select from HD cases
-    selected = hdData[Math.floor(Math.random()*hdData.length)];
-    const titleInfo = `<p><b><i>${selected['title']['value']}</i></b> (${selected['nja']['value']}) är ett avgörande från ${selected['year']['value']}.`;
-    const titleLink = `<a href="${selected['url']['value']}">Läs avgörandet</a> på Högsta domstolens hemsida.`;
-    hdEvent = () => displayCorrectMessage(titleInfo, titleLink);
-    beckEvent = () => displayWrongMessage(titleInfo, titleLink);
+    const keys = Object.keys(hdData);
+    const key = keys[Math.floor(Math.random()*keys.length)];
+    console.log(key);
+    const output = [];
+    hdData[key].forEach((selected)=>{
+      output.push(`<p><b><i>${selected['title']['value']}</i></b> (${selected['nja']['value']}) är ett avgörande från ${selected['year']['value']}.`);
+      output.push(`<p><a href="${selected['url']['value']}">Läs avgörandet</a> på Högsta domstolens hemsida.</p>`);
+    });
+    hdEvent = () => displayCorrectMessage(output.join(''), '');
+    beckEvent = () => displayWrongMessage(output.join(''), '');
+    quizContainer.innerHTML = buildQuestion(key);
   }
-  quizContainer.innerHTML = buildQuestion(selected);
   hdButton.addEventListener('click', hdEvent);
   beckButton.addEventListener('click', beckEvent);
 }
@@ -132,11 +138,26 @@ function hideResults(){
   showQuestion();
 }
 
+function hdProcessData(value){
+  const rawList = value['results']['bindings'];
+  const output = {};
+  rawList.forEach( x => {
+    var title = x['title']['value'];
+    const lastWord = title.split(' ').slice(-1);
+    if (lastWord == 'I' || lastWord == 'II' || lastWord == 'III' || lastWord == 'IV' ) {
+      title = title.split(' ').slice(0,-1).join(' ');
+    }
+    if (!output[title]) output[title] = [];
+    output[title].push(x)
+  }
+  );
+  hdData = output;
+}
+
 const queryDispatcher = new SPARQLQueryDispatcher( endpointUrl );
 beckPromise = queryDispatcher.query( beckQuery ).then(
   (value) => {beckData = value['results']['bindings'];} );
-hdPromise = queryDispatcher.query( hdQuery ).then(
-  (value) => {hdData = value['results']['bindings'];} );
+hdPromise = queryDispatcher.query( hdQuery ).then( hdProcessData );
 Promise.all([beckPromise, hdPromise]).then( showQuestion );
 
 // Fetch and process data from Wikidata.
