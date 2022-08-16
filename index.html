@@ -72,7 +72,7 @@ function showQuestion(){
   const hdButton = document.getElementById('hd');
   const beckButton = document.getElementById('beck');
   // beck or hd?
-  if (Math.random() < 0.0) {
+  if (Math.random() < 0.5) {
     // select from Beck films
     selected = beckData[Math.floor(Math.random()*beckData.length)];
     const titleInfo = `<p><b><i>${selected['title']['value']}</i></b> är
@@ -82,7 +82,7 @@ function showQuestion(){
     const titleLink = `<a href="${selected['article']['value']}">Läs mer</a> på Wikipedia.`;
     hdEvent = () => displayWrongMessage(titleInfo, titleLink);
     beckEvent = () => displayCorrectMessage(titleInfo, titleLink);
-    quizContainer.innerHTML = buildQuestion(selected['title']['value']);
+    quizContainer.innerHTML = buildQuestion(selected['cleanTitle']);
   }
   else {
     // select from HD cases
@@ -154,9 +154,17 @@ function hdProcessData(value){
   hdData = output;
 }
 
+function beckProcessData(value){
+  const rawList = value['results']['bindings'];
+  rawList.forEach( x => {
+    x['cleanTitle'] = x['title']['value'].replace('Beck – ', '').replace('Beck - ', '');
+  }
+  );
+  beckData = rawList;
+}
+
 const queryDispatcher = new SPARQLQueryDispatcher( endpointUrl );
-beckPromise = queryDispatcher.query( beckQuery ).then(
-  (value) => {beckData = value['results']['bindings'];} );
+beckPromise = queryDispatcher.query( beckQuery ).then( beckProcessData );
 hdPromise = queryDispatcher.query( hdQuery ).then( hdProcessData );
 Promise.all([beckPromise, hdPromise]).then( showQuestion );
 
