@@ -6,6 +6,7 @@
     ett rättsfall från Högsta domstolen. <!--eller kanske båda, men det finns inget sådant exempel när detta skrivs--></p>
 </div>
 <div id="quiz"></div>
+<div id="alternatives"><button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?</div>
 <div id="results">
   <div id="message"></div>
   <div id="info"></div>
@@ -59,20 +60,28 @@ const messageContainer = document.getElementById('message');
 const infoContainer = document.getElementById('info');
 const linkContainer = document.getElementById('link');
 const retryContainer = document.getElementById('cRetry');
+const alternativesContainer = document.getElementById('alternatives');
 
 function buildQuestion(value){
-  return `<div id="title">${value['title']['value']}</div>
-  <button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?`;
+  return `<div id="title">${value['title']['value']}</div>`;
 }
 
 function showQuestion(){
   let selected;
   let hdEvent, beckEvent;
+  const hdButton = document.getElementById('hd');
+  const beckButton = document.getElementById('beck');
   // beck or hd?
-  if (Math.random() < 0.0) {
+  if (Math.random() < 0.5) {
     // select from Beck films
-    hdEvent = displayWrongMessage;
-    beckEvent = displayCorrectMessage;
+    selected = beckData[Math.floor(Math.random()*beckData.length)];
+    const titleInfo = `<p><b><i>${selected['title']['value']}</i></b> är
+                      en film av ${selected['regiLabel']['value']}
+                      från ${selected['year']['value']}
+                      med ${selected['beckLabel']['value']} i rollen som Martin Beck.`;
+    const titleLink = `<a href="${selected['article']['value']}">Läs mer</a> på Wikipedia.`;
+    hdEvent = () => displayWrongMessage(titleInfo, titleLink);
+    beckEvent = () => displayCorrectMessage(titleInfo, titleLink);
   }
   else {
     // select from HD cases
@@ -80,11 +89,9 @@ function showQuestion(){
     const titleInfo = `<p><b><i>${selected['title']['value']}</i></b> (${selected['nja']['value']}) är ett avgörande från ${selected['year']['value']}.`;
     const titleLink = `<a href="${selected['url']['value']}">Läs avgörandet</a> på Högsta domstolens hemsida.`;
     hdEvent = () => displayCorrectMessage(titleInfo, titleLink);
-    beckEvent = displayWrongMessage(titleInfo, titleLink);
+    beckEvent = () => displayWrongMessage(titleInfo, titleLink);
   }
   quizContainer.innerHTML = buildQuestion(selected);
-  const hdButton = document.getElementById('hd');
-  const beckButton = document.getElementById('beck');
   hdButton.addEventListener('click', hdEvent);
   beckButton.addEventListener('click', beckEvent);
 }
@@ -108,6 +115,11 @@ function displayWrongMessage(titleInfo, titleLink){
 }
 
 function displayTitleInfo(titleInfo, titleLink){
+  // remove event listeners
+  const hdButton = document.getElementById('hd');
+  const beckButton = document.getElementById('beck');
+  hdButton.replaceWith(hdButton.cloneNode(true));
+  beckButton.replaceWith(beckButton.cloneNode(true));
   infoContainer.innerHTML = titleInfo;
   linkContainer.innerHTML = titleLink;
 }
@@ -117,11 +129,14 @@ function hideResults(){
   infoContainer.innerHTML = '';
   linkContainer.innerHTML = '';
   retryContainer.innerHTML = '';
+  showQuestion();
 }
 
 const queryDispatcher = new SPARQLQueryDispatcher( endpointUrl );
-beckPromise = queryDispatcher.query( beckQuery ).then( (value) => {beckData = value['results']['bindings'];} );
-hdPromise = queryDispatcher.query( hdQuery ).then( (value) => {hdData = value['results']['bindings'];} );
+beckPromise = queryDispatcher.query( beckQuery ).then(
+  (value) => {beckData = value['results']['bindings'];} );
+hdPromise = queryDispatcher.query( hdQuery ).then(
+  (value) => {hdData = value['results']['bindings'];} );
 Promise.all([beckPromise, hdPromise]).then( showQuestion );
 
 // Fetch and process data from Wikidata.
