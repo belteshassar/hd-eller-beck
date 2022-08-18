@@ -1,18 +1,47 @@
-<div id="rules">
-    <h1>Beck-film eller rättsfall från Högsta domstolen</h1>
-    <p>Sedan några år tillbaka namnger Högsta domstolen de flesta av de mål som den avgör.
-    Namnen för ibland tankarna till kriminalromaner eller -filmer. Klarar du att skilja på de två?
-    Du kommer att få se tio titlar och din uppgift är att avgöra om titeln tillhör en Beck-film eller
-    ett rättsfall från Högsta domstolen. <!--eller kanske båda, men det finns inget sådant exempel när detta skrivs--></p>
+<style>
+#game {
+  max-width: 500px;
+  text-align: center;
+  margin: auto;
+}
+h1 {
+  font: 24px sans-serif;
+  font-weight: bold;
+}
+p {
+  font: 12px sans-serif;
+}
+button {
+  font: 12px sans-serif;
+}
+#quiz {
+  padding-top: 20px;
+  font: 20px sans-serif;
+}
+#alternatives {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font: 16px sans-serif;
+}
+
+</style>
+<div id="game">
+  <div id="rules">
+      <h1>Beck-film eller rättsfall från Högsta domstolen</h1>
+      <p>Sedan några år tillbaka namnger Högsta domstolen de flesta av de mål som den avgör.
+      Namnen för ibland tankarna till kriminalromaner eller -filmer. Klarar du att skilja på de två?
+      Du kommer att få se tio titlar och din uppgift är att avgöra om titeln tillhör en Beck-film eller
+      ett rättsfall från Högsta domstolen. <!--eller kanske båda, men det finns inget sådant exempel när detta skrivs--></p>
+  </div>
+  <div id="quiz"></div>
+  <div id="alternatives"><button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?</div>
+  <div id="results">
+    <div id="message"></div>
+    <div id="info"></div>
+    <div id="link"></div>
+  </div>
+  <div id="cRetry"></div>
 </div>
-<div id="quiz"></div>
-<div id="alternatives"><button id="beck">Beck-film</button> eller <button id="hd">rättsfall</button> ?</div>
-<div id="results">
-  <div id="message"></div>
-  <div id="info"></div>
-  <div id="link"></div>
-</div>
-<div id="cRetry"></div>
 
 <script>
 
@@ -58,8 +87,8 @@ const hdQuery = `SELECT ?title ?nja (YEAR(?date) AS ?year) ?url WHERE {
   OPTIONAL {?item wdt:P953 ?url.}
 }`;
 
-const correctMessage = 'Grattis, du svarade rätt.';
-const wrongMessage = 'Tyvärr, du svarade fel.';
+const correctMessage = '<p>Grattis, du svarade rätt.</p>';
+const wrongMessage = '<p>Tyvärr, du svarade fel.</p>';
 
 const quizContainer = document.getElementById('quiz');
 const resultsContainer = document.getElementById('results');
@@ -87,7 +116,7 @@ function showQuestion(){
                       en film av ${selected['regiLabel']['value']}
                       från ${selected['year']['value']}
                       med ${selected['beckLabel']['value']} i rollen som Martin Beck.`;
-    const titleLink = `<a href="${selected['article']['value']}">Läs mer</a> på Wikipedia.`;
+    const titleLink = `<p><a href="${selected['article']['value']}">Läs mer</a> på Wikipedia.</p>`;
     hdEvent = () => displayWrongMessage(titleInfo, titleLink);
     beckEvent = () => displayCorrectMessage(titleInfo, titleLink);
     quizContainer.innerHTML = buildQuestion(selected['cleanTitle']);
