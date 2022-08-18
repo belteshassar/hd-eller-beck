@@ -33,13 +33,21 @@ let beckData, hdData;
 
 const endpointUrl = 'https://query.wikidata.org/sparql';
 const beckQuery = `SELECT ?title (YEAR(?date) AS ?year) ?regiLabel ?beckLabel ?article WHERE {
-  ?item wdt:P179 wd:Q16939437;
-        wdt:P1476 ?title;
+  { 
+    ?book wdt:P179 wd:Q179828.
+    ?film wdt:P144 ?book.
+  }
+  UNION
+  {
+    ?film wdt:P179 wd:Q16939437;
+  }
+  ?film wdt:P1476 ?title;
         wdt:P577 ?date;
         wdt:P57 ?regi;
         p:P161 [ps:P161 ?beck; pq:P453 wd:Q13652117].
-  ?article schema:about ?item;
+  ?article schema:about ?film;
            schema:isPartOf <https://sv.wikipedia.org/>.
+  FILTER (LANG(?title) = "sv")
   SERVICE wikibase:label { bd:serviceParam wikibase:language "sv,en,de". }
 }`;
 const hdQuery = `SELECT ?title ?nja (YEAR(?date) AS ?year) ?url WHERE {
