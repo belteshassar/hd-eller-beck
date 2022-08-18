@@ -23,6 +23,13 @@ button {
   padding-bottom: 20px;
   font: 16px sans-serif;
 }
+#wdlogo {
+  width: 200px;
+  position: fixed;
+  bottom: 20;
+  left: 50%;
+  margin-left:-100px;
+}
 
 </style>
 <div id="game">
@@ -41,6 +48,9 @@ button {
     <div id="link"></div>
   </div>
   <div id="cRetry"></div>
+</div>
+<div id="wdlogo">
+  <a href="https://wikidata.org" target="new"><img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Wikidata_Stamp_Rec_Light.svg" width="100%"/></a>
 </div>
 
 <script>
@@ -116,7 +126,7 @@ function showQuestion(){
                       en film av ${selected['regiLabel']['value']}
                       från ${selected['year']['value']}
                       med ${selected['beckLabel']['value']} i rollen som Martin Beck.`;
-    const titleLink = `<p><a href="${selected['article']['value']}">Läs mer</a> på Wikipedia.</p>`;
+    const titleLink = `<p><a href="${selected['article']['value']}" target="new">Läs mer</a> på Wikipedia.</p>`;
     hdEvent = () => displayWrongMessage(titleInfo, titleLink);
     beckEvent = () => displayCorrectMessage(titleInfo, titleLink);
     quizContainer.innerHTML = buildQuestion(selected['cleanTitle']);
@@ -129,7 +139,7 @@ function showQuestion(){
     const output = [];
     hdData[key].forEach((selected)=>{
       output.push(`<p><b><i>${selected['title']['value']}</i></b> (${selected['nja']['value']}) är ett avgörande från ${selected['year']['value']}.`);
-      output.push(`<p><a href="${selected['url']['value']}">Läs avgörandet</a> på Högsta domstolens hemsida.</p>`);
+      output.push(`<p><a href="${selected['url']['value']}" target="new">Läs avgörandet</a> på Högsta domstolens hemsida.</p>`);
     });
     hdEvent = () => displayCorrectMessage(output.join(''), '');
     beckEvent = () => displayWrongMessage(output.join(''), '');
